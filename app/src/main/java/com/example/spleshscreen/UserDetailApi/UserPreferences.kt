@@ -59,4 +59,27 @@ class UserPreferences(context: Context) {
             it[PreferenceKeys.IS_FIRST_LAUNCH] = false
         }
     }
+    suspend fun saveUserDetails(userDetails: UserDetails) {
+        val jsonString = jsonFormat.encodeToString(UserDetails.serializer(), userDetails)
+        Log.d("SaveUserDetails_JSON", jsonString)
+        dataStore.edit {
+            it[PreferenceKeys.USER_DETAILS] = jsonString
+        }
+    }
+
+    suspend fun getUserDetails(): UserDetails? {
+        val json = dataStore.data.map {
+            it[PreferenceKeys.USER_DETAILS] ?: ""
+        }.first()
+
+        return if (json.isNotBlank()) {
+            jsonFormat.decodeFromString(UserDetails.serializer(), json)
+        } else null
+    }
+
+    suspend fun clearUserDetails(){
+        dataStore.edit {
+            it.remove(PreferenceKeys.USER_DETAILS)
+        }
+    }
 }
