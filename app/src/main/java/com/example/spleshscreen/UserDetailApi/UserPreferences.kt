@@ -1,14 +1,17 @@
 package com.example.spleshscreen.UserDetailApi
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.spleshscreen.UserDetailApi.dataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import kotlin.text.set
 
 val Context.dataStore by preferencesDataStore("user_pref")
 
@@ -22,11 +25,14 @@ object PreferenceKeys {
 class UserPreferences(context: Context) {
     private val dataStore = context.dataStore
 
+    private val jsonFormat = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        isLenient = true
+    }
+
     val accessTokenFlow : Flow<String?>  = dataStore.data.map {
         it[PreferenceKeys.ACCESS_TOKEN]
-    }
-    val tokenTypeFlow : Flow<String?> = dataStore.data.map {
-        it[PreferenceKeys.TOKEN_TYPE]
     }
 
     val isFirstLaunchFlow : Flow<Boolean> = dataStore.data.map {
@@ -40,7 +46,6 @@ class UserPreferences(context: Context) {
             it[PreferenceKeys.TOKEN_TYPE] = tokenType
         }
     }
-
     suspend fun getToken(): String {
         return dataStore.data.map {
             it[PreferenceKeys.ACCESS_TOKEN] ?: ""
@@ -60,21 +65,36 @@ class UserPreferences(context: Context) {
         }
     }
     suspend fun saveUserDetails(userDetails: UserDetails) {
-        val jsonString = jsonFormat.encodeToString(UserDetails.serializer(), userDetails)
-        Log.d("SaveUserDetails_JSON", jsonString)
-        dataStore.edit {
-            it[PreferenceKeys.USER_DETAILS] = jsonString
+        try {
+            Log.d("SaveUserDetails", "Called with user: ${userDetails.firstname} (ID: ${userDetails.user_id})")
+
+            val jsonString = jsonFormat.encodeToString(UserDetails.serializer(), userDetails)
+            Log.d("SaveUserDetails_JSON", jsonString)
+
+            dataStore.edit {
+                it[PreferenceKeys.USER_DETAILS] = jsonString
+            }
+
+        } catch (e: Exception) {
+            Log.e("SaveUserDetails", "Error saving user details", e)
         }
     }
-
     suspend fun getUserDetails(): UserDetails? {
-        val json = dataStore.data.map {
-            it[PreferenceKeys.USER_DETAILS] ?: ""
-        }.first()
 
-        return if (json.isNotBlank()) {
-            jsonFormat.decodeFromString(UserDetails.serializer(), json)
-        } else null
+        return try {
+            val json = dataStore.data.map {
+                it[PreferenceKeys.USER_DETAILS] ?: ""
+            }.first()
+
+            if (json.isNotEmpty()) {
+                jsonFormat.decodeFromString(UserDetails.serializer(), json).also {
+                    Log.d("UserPreferences","Loaded: ${it.firstname}")
+                }
+            }else { null }
+        }catch (e: Exception){
+            Log.e("UserPreferences" , "Error loading user detail" , e)
+            null
+        }
     }
 
     suspend fun clearUserDetails(){

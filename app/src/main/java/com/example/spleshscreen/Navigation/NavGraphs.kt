@@ -19,7 +19,7 @@
 //import com.example.spleshscreen.TaskScreens.MyTask
 //import com.example.spleshscreen.TaskScreens.TaskDetail
 //import com.example.spleshscreen.TaskScreens.TaskViewModel
-//import com.example.spleshscreen.otherScreen.AttendanceScreen
+//import com.example.spleshscreen.AttandenceSection.AttendanceScreen
 //import com.example.spleshscreen.otherScreen.Events
 //import com.example.spleshscreen.LeaveSection.Leave
 //import com.example.spleshscreen.LeaveSection.LeaveViewModel

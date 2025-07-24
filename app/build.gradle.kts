@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
 
 }
 
@@ -63,7 +64,7 @@ dependencies {
     androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
 
     // JSON serialization library, works with the Kotlin serialization plugin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation ("com.google.accompanist:accompanist-pager:0.24.13-rc")
@@ -107,8 +108,15 @@ dependencies {
 
     // Data Store
     implementation("androidx.datastore:datastore-preferences:1.1.7")
-
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+
+    // Hilt view model
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+
+    // OkHttp logging interceptor (for debugging)
+    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

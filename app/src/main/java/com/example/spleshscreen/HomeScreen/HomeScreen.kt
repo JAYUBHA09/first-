@@ -5,6 +5,8 @@ import MainGrid
 import android.R.attr.navigationIcon
 
 import android.icu.text.SimpleDateFormat
+import android.text.Layout
+import android.text.Layout.Alignment.ALIGN_CENTER
 import android.util.Log
 import android.widget.Scroller
 
@@ -43,14 +45,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButtonDefaults.elevation
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -61,9 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -74,10 +68,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import coil.size.Scale
+import coil.size.Scale.FILL
 import com.example.spleshscreen.Navigation.Screens
 import com.example.spleshscreen.R
 import com.example.spleshscreen.UserDetailApi.AuthViewModel
+import com.example.spleshscreen.UserDetailApi.UserDetails
 import com.example.spleshscreen.UserDetailApi.UserPreferences
 import com.example.spleshscreen.ui.theme.Blue
 import com.example.spleshscreen.ui.theme.DarkBlue
@@ -105,23 +102,12 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
     val ct  = SimpleDateFormat("HH:mm:ss")
     val currentTime = ct.format(System.currentTimeMillis())
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val prefs = UserPreferences(context)
+
 
     LaunchedEffect(Unit) {
-        val prefs = UserPreferences(context)
-        val token  = prefs.getToken()
-        Log.d("Login", "New token: $token")
-        Log.d("Prefs", "Stored token: ${prefs.getToken()}")
-        viewModel.loadUserFromToken(token)
+       viewModel.fetchUserDetails(prefs)
     }
-
-
-    val user = viewModel.user
-
-    LaunchedEffect(user) {
-        Log.d("HomeScreen",  "user_id :${viewModel.user?.firstname}  ${viewModel.user?.user_id}")
-    }
-
 
     Column(
         modifier = Modifier
@@ -152,13 +138,10 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
                         .clip(RoundedCornerShape(8.dp))
                         .clickable(onClick = { navController.navigate(Screens.MainScreen.QrScanScreen.route) })
                 )
-
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = LiteGray)
 
         )
-
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,7 +160,8 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
             ) {
 
                 Row(
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp , end = 8.dp , top = 10.dp , bottom = 10.dp),
+                    horizontalArrangement = Arrangement.Absolute.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BadgedBox(
@@ -188,23 +172,20 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
 
                         Image(
 
-                            painterResource(com.example.spleshscreen.R.drawable.account),
+                            rememberAsyncImagePainter(viewModel.userDetails?.picture),
                             contentDescription = "Register Image",
                             modifier = Modifier
                                 .clickable(onClick = {navController.navigate(Screens.MainScreen.ProfileDetail.route)})
                                 .clip(CircleShape)
-                                .width(55.dp)
-                                .height(55.dp)
-                                .border(width = 2.dp, color = Purple80, shape = CircleShape),
-                            alignment = Alignment.TopEnd
+                                .width(65.dp)
+                                .height(65.dp)
+                                .border(width = 1.dp, color = Color.DarkGray, shape = CircleShape),
+                            alignment = Alignment.Center,
                         )
                     }
 
-
-
-                    Column(
-                        modifier = Modifier.padding(10.dp)
-                    ) {
+                    Column(modifier = Modifier.padding(4.dp)
+                        .width(150.dp)) {
                         Row {
                             Text(
                                 "Hi!",
@@ -216,19 +197,22 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
 
                             Spacer(modifier = Modifier.width(4.dp))
 
-                            viewModel.user?.let {
-                                Text(
-                                    it.firstname,
-                                    style = TextStyle(fontWeight = FontWeight.Bold),
-                                    color = NavyBlue
-                                )
-                            }
+                            viewModel.userDetails?.let { user ->
+                            Text(
+                                user.name,
+                                style = TextStyle(fontWeight = FontWeight.Bold),
+                                color = NavyBlue
+                            )
+                        }
                         }
 
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        Text("Android Developer", color = PurpleGrey40)
+                        viewModel.userDetails?.designation_name?.let {
+                            Text(it,
+                                color = PurpleGrey40)
+                        }
 
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -239,9 +223,9 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
 
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.width(2.dp))
 
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column() {
 
                         Text(
                             currentTime,
@@ -259,13 +243,10 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("In", fontSize = 15.sp , fontWeight = FontWeight.Bold)
+                            Text("Out" , color = Color.White)
                         }
                     }
-
-
                 }
-
             }
             MainGrid(navController)
             WeeklyGraph()

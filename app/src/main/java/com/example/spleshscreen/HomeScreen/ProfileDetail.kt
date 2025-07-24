@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -33,6 +34,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,12 +53,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.spleshscreen.UserDetailApi.AuthViewModel
 import com.example.spleshscreen.Navigation.Screens
 import com.example.spleshscreen.R
@@ -73,8 +79,31 @@ import com.google.accompanist.permissions.rememberPermissionState
 fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
 
     val context = LocalContext.current
-    val userPrefs = remember { UserPreferences(context) }
+    val pref = remember { UserPreferences(context) }
+    val isLoading = viewModel.isLoading
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserDetails(pref)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadUserDetails(pref)
+        viewModel.user?.firstname?.let {
+            Log.d("UserName" , it)
+        }
+    }
+
     val user = viewModel.user
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(80.dp), color = Blue)
+        }
+    } else {
 
     Column( modifier = Modifier
         .fillMaxSize()
@@ -100,7 +129,7 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
             },
             actions = {
                 IconButton(onClick = {
-                    viewModel.logout(userPrefs)
+                    viewModel.logout(pref)
                     navController.navigate(Screens.AuthScreen.LoginScreen.route) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -190,19 +219,19 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                                 AsyncImage(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .size(100.dp)
+                                        .size(150.dp)
                                         .border(width = 2.dp, color = Purple80, shape = CircleShape),
                                     model = imageUri.value,
                                     contentDescription = null
                                 )
                             } else {
                                 Image(
-                                    painter = painterResource(R.drawable.account),
+                                    painter = rememberAsyncImagePainter(viewModel.userDetails?.picture),
                                     contentDescription = "Default",
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .size(100.dp)
-                                        .border(width = 2.dp, color = Purple80, shape = CircleShape)
+                                        .border(width = 2.dp, color = Color.DarkGray, shape = CircleShape)
                                 )
                             }
 
@@ -215,19 +244,22 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                         colors = ButtonDefaults.buttonColors(Blue)) {
                         Text(text = "Upload photo")
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
 
 
+                    viewModel.userDetails?.name?.let {
                         Text(
-                            text = user?.let { "${it.firstname} ${it.lastname}" } ?: "Loading",
+                            text = it,
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Medium
                         )
-
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Version : 1.8 ",
+                        text = "Version : 1.8.0",
                         color = Color.Gray,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Normal
@@ -236,7 +268,7 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
             }
         }
 
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -247,13 +279,18 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                     modifier = Modifier.size(30.dp)
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(15.dp))
 
-                Text(text = "harry@gmail.com", color = Color.DarkGray, fontSize = 18.sp)
+                viewModel.userDetails?.email?.let {
+                    Text(
+                        text = it,
+                        color = Color.DarkGray, fontSize = 18.sp
+                    )
+                }
 
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(painter = painterResource(R.drawable.person) ,
@@ -261,13 +298,14 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                     tint = Color.DarkGray ,
                     modifier = Modifier.size(30.dp))
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(15.dp))
 
-
-                Text(text = "Jr.Android developer ", color = Color.DarkGray, fontSize = 18.sp)
+                viewModel.userDetails?.designation_name?.let {
+                    Text(text = it, color = Color.DarkGray, fontSize = 18.sp)
+                }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -277,23 +315,33 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                     tint = Color.DarkGray,
                     modifier = Modifier.size(30.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(15.dp))
 
 
-                Text(text = "28 jan 1998", color = Color.DarkGray, fontSize = 18.sp)
+                user?.birthdate?.let {
+                    Text(text = it ,
+                        color = Color.DarkGray, fontSize = 18.sp)
+                }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(painter = painterResource(R.drawable.call) ,
-                    contentDescription = "Phone no" ,
-                    tint = Color.DarkGray ,
-                    modifier = Modifier.size(30.dp))
+                Icon(
+                    painter = painterResource(R.drawable.call),
+                    contentDescription = "Phone no",
+                    tint = Color.DarkGray,
+                    modifier = Modifier.size(30.dp)
+                )
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(15.dp))
 
-                Text(text = "7878877878", color = Color.DarkGray, fontSize = 18.sp)
+                user?.contact_number?.let {
+                    Text(
+                        text = it,
+                        color = Color.DarkGray, fontSize = 18.sp
+                    )
+                }
             }
         }
     }
@@ -333,7 +381,7 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
         }
 
     }
-
+    }
 
 }
 
