@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
+    id("com.google.dagger.hilt.android") version "2.57" apply false
+
 
 }
 
@@ -117,6 +119,8 @@ dependencies {
 
     // OkHttp logging interceptor (for debugging)
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.9")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.example.spleshscreen.AttandenceSection.Attendance
 import com.example.spleshscreen.Authentication.LoginScreen
 import com.example.spleshscreen.Authentication.RegisterScreen
 import com.example.spleshscreen.HomeScreen.BarcodeScanner
@@ -26,7 +27,6 @@ import com.example.spleshscreen.TaskScreens.MyTask
 import com.example.spleshscreen.TaskScreens.TaskDetail
 import com.example.spleshscreen.TaskScreens.TaskViewModel
 import com.example.spleshscreen.UserDetailApi.AuthViewModel
-import com.example.spleshscreen.AttandenceSection.AttendanceScreen
 import com.example.spleshscreen.otherScreen.Events
 import com.example.spleshscreen.uiProject.splesh.Intro.InfoScreen
 import com.example.spleshscreen.uiProject.splesh.Intro.SplashScreen
@@ -35,10 +35,7 @@ import com.example.spleshscreen.uiProject.splesh.Intro.SplashScreen
 @Composable
 fun SetupNavcontroler(navController: NavHostController){
 
-
    NavHost(navController = navController , startDestination = Screens.SplashScreen.route) {
-
-
 
         composable(Screens.SplashScreen.route){
             SplashScreen(navController)
@@ -94,7 +91,7 @@ fun SetupNavcontroler(navController: NavHostController){
             }
 
             composable(Screens.MainScreen.Attendance.route){
-                AttendanceScreen(navController)
+                Attendance(navController)
             }
             composable(Screens.MainScreen.PaySlip.route){
                 PaySlip(navController)

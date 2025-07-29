@@ -2,7 +2,9 @@ package com.example.spleshscreen.AttandenceSection
 
 import Calendar
 import android.annotation.SuppressLint
+import android.app.*
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,12 +34,14 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.spleshscreen.R
@@ -71,8 +78,8 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AttendanceScreen(navController: NavController) {
-
+fun Attendance(navController: NavController) {
+    val viewModel : AttendanceViewModel  = hiltViewModel()
     val scrollState = rememberScrollState()
 
 
@@ -109,18 +116,25 @@ fun AttendanceScreen(navController: NavController) {
                     .verticalScroll(scrollState)
                     .padding(top = 16.dp)
             ) {
-                AttendanceSummaryCard()
-
+                AttendanceSummaryCard(viewModel)
             }
-
-
         }
     }
+@Composable
+fun IsLoading(){
+    Box(modifier = Modifier.fillMaxSize() ,
+        contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(modifier = Modifier.size(50.dp))
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AttendanceSummaryCard() {
+fun AttendanceSummaryCard(viewModel: AttendanceViewModel) {
+
+
 
     data class Attendance(val days: Int, val status: String, val color: Color)
 
@@ -410,9 +424,7 @@ fun CheckInOut(selectedDate: LocalDate) {
                             }
                         }
                     }
-
                 }
-
             }
         }
     }
@@ -421,8 +433,6 @@ fun CheckInOut(selectedDate: LocalDate) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AttendancePreview(){
-
     val navController = rememberNavController()
-    AttendanceScreen(navController)
-
+    Attendance(navController)
 }
