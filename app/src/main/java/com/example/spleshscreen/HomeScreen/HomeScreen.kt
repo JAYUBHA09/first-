@@ -45,6 +45,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -103,153 +104,174 @@ fun HomeScreen(navController: NavController , viewModel: AuthViewModel){
     val currentTime = ct.format(System.currentTimeMillis())
     val context = LocalContext.current
     val prefs = UserPreferences(context)
+    val isLoading = viewModel.isLoading
 
 
     LaunchedEffect(Unit) {
        viewModel.fetchUserDetails(prefs)
     }
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(50.dp), color = Blue)
+        }
+    } else {
 
-    Column(
-        modifier = Modifier
-            .padding(start = 12.dp , end = 12.dp)
-            .fillMaxSize()
-            .background(LiteGray)
-
-    ) {
-
-        TopAppBar( modifier = Modifier.padding(start = 10.dp , end = 10.dp , top = 4.dp),
-            title = {
-                Text(
-                    text = "Dashboard", style = TextStyle(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = NavyBlue
-                    ), modifier = Modifier
-
-                )
-            },
-            actions = {
-
-                Image(
-                    painterResource(R.drawable.fingerprint), contentDescription = null,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .size(45.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = { navController.navigate(Screens.MainScreen.QrScanScreen.route) })
-                )
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = LiteGray)
-
-        )
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
+                .padding(start = 12.dp, end = 12.dp)
+                .fillMaxSize()
+                .background(LiteGray)
+
         ) {
 
+            TopAppBar(
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 4.dp),
+                title = {
+                    Text(
+                        text = "Dashboard", style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = NavyBlue
+                        ), modifier = Modifier
 
-            Card(
+                    )
+                },
+                actions = {
+
+                    Image(
+                        painterResource(R.drawable.fingerprint), contentDescription = null,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .size(45.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(onClick = { navController.navigate(Screens.MainScreen.QrScanScreen.route) })
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = LiteGray)
+
+            )
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp , end = 16.dp, top = 10.dp , bottom = 10.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 6.dp
-                )
+                    .verticalScroll(scrollState)
             ) {
 
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp , end = 8.dp , top = 10.dp , bottom = 10.dp),
-                    horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 6.dp
+                    )
                 ) {
-                    BadgedBox(
-                        badge = {
-                            Badge(containerColor = Color.Green)
-                        }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 8.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+                        horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
-                        Image(
-
-                            rememberAsyncImagePainter(viewModel.userDetails?.picture),
-                            contentDescription = "Register Image",
-                            modifier = Modifier
-                                .clickable(onClick = {navController.navigate(Screens.MainScreen.ProfileDetail.route)})
-                                .clip(CircleShape)
-                                .width(65.dp)
-                                .height(65.dp)
-                                .border(width = 1.dp, color = Color.DarkGray, shape = CircleShape),
-                            alignment = Alignment.Center,
-                        )
-                    }
-
-                    Column(modifier = Modifier.padding(4.dp)
-                        .width(150.dp)) {
-                        Row {
-                            Text(
-                                "Hi!",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = NavyBlue
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            viewModel.userDetails?.let { user ->
-                            Text(
-                                user.name,
-                                style = TextStyle(fontWeight = FontWeight.Bold),
-                                color = NavyBlue
-                            )
-                        }
-                        }
-
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        viewModel.userDetails?.designation_name?.let {
-                            Text(it,
-                                color = PurpleGrey40)
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            currentDate,
-                            style = TextStyle(fontWeight = FontWeight.Medium, color = DarkBlue)
-                        )
-
-                    }
-
-                    Spacer(Modifier.width(2.dp))
-
-                    Column() {
-
-                        Text(
-                            currentTime,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            style = TextStyle(fontWeight = FontWeight.Bold, color = DarkBlue)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Button(
-                            onClick = {},
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = Color.White,
-                                containerColor = Orange
-                            ),
-                            shape = RoundedCornerShape(8.dp)
+                        BadgedBox(
+                            badge = {
+                                Badge(containerColor = Color.Green)
+                            }
                         ) {
-                            Text("Out" , color = Color.White)
+
+                            Image(
+
+                                rememberAsyncImagePainter(viewModel.userDetails?.picture),
+                                contentDescription = "Register Image",
+                                modifier = Modifier
+                                    .clickable(onClick = { navController.navigate(Screens.MainScreen.ProfileDetail.route) })
+                                    .clip(CircleShape)
+                                    .width(65.dp)
+                                    .height(65.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.DarkGray,
+                                        shape = CircleShape
+                                    ),
+                                alignment = Alignment.Center,
+                            )
+                        }
+
+                        Column(
+                            modifier = Modifier.padding(4.dp)
+                                .width(150.dp)
+                        ) {
+                            Row {
+                                Text(
+                                    "Hi!",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = NavyBlue
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                viewModel.userDetails?.let { user ->
+                                    Text(
+                                        user.name,
+                                        style = TextStyle(fontWeight = FontWeight.Bold),
+                                        color = NavyBlue
+                                    )
+                                }
+                            }
+
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            viewModel.userDetails?.designation_name?.let {
+                                Text(
+                                    it,
+                                    color = PurpleGrey40
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                currentDate,
+                                style = TextStyle(fontWeight = FontWeight.Medium, color = DarkBlue)
+                            )
+
+                        }
+
+                        Spacer(Modifier.width(2.dp))
+
+                        Column() {
+
+                            Text(
+                                currentTime,
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                style = TextStyle(fontWeight = FontWeight.Bold, color = DarkBlue)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Button(
+                                onClick = {},
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = Color.White,
+                                    containerColor = Orange
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Out", color = Color.White)
+                            }
                         }
                     }
                 }
+                MainGrid(navController)
+                WeeklyGraph()
             }
-            MainGrid(navController)
-            WeeklyGraph()
         }
     }
 }

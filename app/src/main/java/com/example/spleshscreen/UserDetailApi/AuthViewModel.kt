@@ -66,8 +66,6 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                         }
                     }
                     Log.d("firstname", user?.firstname ?: "null")
-
-
                 }
                 else {
                     errorMessage = response.message
@@ -81,7 +79,6 @@ class AuthViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
-
     fun logout(prefs: UserPreferences) {
         viewModelScope.launch {
             prefs.clearToken()
@@ -97,7 +94,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
             isLoading = true
             try {
                 val token = prefs.getToken()
-                val response = RetrofitInstance.meApi.userDetail("Bearer $token")
+                val response = RetrofitInstance.meApi.userDetail()
                 Log.d("Token","Loaded : $token")
 
                 if (response.status.equals("Success", ignoreCase = true)){

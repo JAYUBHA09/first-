@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.spleshscreen", appContext.packageName)
+        assertEquals("com.example.we stacking", appContext.packageName)
     }
 }

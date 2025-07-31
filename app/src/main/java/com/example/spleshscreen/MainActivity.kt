@@ -15,14 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.example.spleshscreen.Navigation.SetupNavcontroler
 import dagger.hilt.android.AndroidEntryPoint
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AuthTokenProvider.init(applicationContext)
         enableEdgeToEdge()
-
         setContent {
             MaterialTheme {
                 Box(

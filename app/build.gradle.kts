@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
+    id ("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
-    id("com.google.dagger.hilt.android") version "2.57" apply false
 
 
 }
@@ -45,8 +45,7 @@ android {
 }
 
 dependencies {
-
-    implementation ("androidx.core:core-splashscreen:1.0.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation(libs.androidx.camera.mlkit.vision)
 
 
@@ -66,7 +65,8 @@ dependencies {
     androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
 
     // JSON serialization library, works with the Kotlin serialization plugin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
 
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation ("com.google.accompanist:accompanist-pager:0.24.13-rc")

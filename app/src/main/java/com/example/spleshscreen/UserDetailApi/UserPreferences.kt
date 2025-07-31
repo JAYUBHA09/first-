@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import kotlin.text.set
 
 val Context.dataStore by preferencesDataStore("user_pref")
 
@@ -88,7 +87,7 @@ class UserPreferences(context: Context) {
 
             if (json.isNotEmpty()) {
                 jsonFormat.decodeFromString(UserDetails.serializer(), json).also {
-                    Log.d("UserPreferences","Loaded: ${it.firstname}")
+                 //   Log.d("UserPreferences","Loaded: ${it.firstname}")
                 }
             }else { null }
         }catch (e: Exception){

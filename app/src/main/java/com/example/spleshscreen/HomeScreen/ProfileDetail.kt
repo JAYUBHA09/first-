@@ -101,7 +101,7 @@ fun ProfileDetail(navController: NavController  , viewModel: AuthViewModel) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(80.dp), color = Blue)
+            CircularProgressIndicator(modifier = Modifier.size(50.dp), color = Blue)
         }
     } else {
 

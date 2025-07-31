@@ -1,77 +1,110 @@
 package com.example.spleshscreen.AttandenceSection
 
-import android.os.Build
+import InOutEntry
+import Reports
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spleshscreen.RetrofitInstance
 import com.example.spleshscreen.UserDetailApi.UserPreferences
-import com.example.spleshscreen.UserDetailApi.getuserDetail.Data
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 
-
-class AttendanceViewModel(
-    private val userPreferences: UserPreferences
-) : ViewModel() {
+class AttendanceViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
         private set
 
     var errorMessage by mutableStateOf("")
         private set
 
-    var inOutDetail by mutableStateOf<InOutResponse?>(null)
-        private set
-
     var report by mutableStateOf<Reports?>(null)
         private set
 
-    fun LoadInOutDetailsForCurrentUser() {
+    var inOutData by mutableStateOf<List<InOutEntry>>(emptyList())
+
+    fun loadInOutDetailsForCurrentUser(userPreferences: UserPreferences ,selectedDate: String? ) {
         viewModelScope.launch {
-            val userDetails = userPreferences.getUserDetails()
+            try {
+                isLoading = true
+               val user = userPreferences.getUserDetails()
+                val employeeId = user?.id
 
-            if (userDetails != null) {
-                loadInOutDetail(userDetails.id) // suspend function now
-            } else {
-                errorMessage = "User not logged in"
+                if (employeeId == null) {
+                    errorMessage = "User not logged in or employee ID missing"
+                    return@launch
+                }
+                    loadInOutDetail(employeeId.toString(), selectedDate)
+                    Log.d("Employ_id", ": ${report?.employee_id}")
+
+
+            } catch (e: Exception) {
+                Log.e("AttendanceViewModel", "Error getting user details", e)
+                errorMessage = "Failed to get user information"
+            }
+            finally {
+                isLoading = false
             }
         }
     }
-    private suspend fun loadInOutDetail(employeeId: Int) {
-        isLoading = true
-        try {
-            val response = RetrofitInstance.inOutApi.getInOutDetails(
-                EmployeeRequest(employeeId.toString(), "2025-07-28")
-            )
+    private suspend fun loadInOutDetail(employee_id: String?, punch_date: String?){
+            try {
+                val request = EmployeeRequest(
+                    employee_id = employee_id,
+                    punch_date = punch_date
+                )
+                val response = RetrofitInstance.inOutApi.getInOutDetails(request)
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                if (responseBody != null){
+                when (responseBody.status) {
+                    "Success" -> {
+                        report = responseBody.data.reports
+                        inOutData = responseBody.data.in_out_data
+                        Log.d("AttendanceViewModel", "Data loaded successfully: ${responseBody.data}")
+                    }
+                    else -> {
+                    errorMessage = responseBody.message.ifEmpty { "Unknown error occurred" }
+                    Log.e("AttendanceViewModel", "API failed: ${responseBody.message}")
+                }
+                }
 
-            val body = response.data
-            if (response.status == "Success" && body != null) {
-                inOutDetail = body
-                report = body.reports
-            } else {
-                val errorMsg = response.message ?: "Something went wrong"
-                errorMessage = errorMsg
+                }
+                else {
+                    errorMessage = "Response body is null"
+                    Log.e("AttendanceViewModel", "Empty response body")
+                }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    errorMessage = "Error: ${errorBody ?: "Unknown error"}"
+                    Log.e("AttendanceViewModel", "API Error: $errorMessage")
+                }
+
+            } catch (e: Exception) {
+                Log.e("InOutDataE", "Exception: ${e.message}", e)
+            } finally {
+                isLoading = false
             }
 
-        } catch (e: Exception) {
-            val errorMsg = when (e) {
-                is java.net.UnknownHostException -> "No internet connection"
-                is java.net.SocketTimeoutException -> "Request timeout"
-                else -> "Unexpected error: ${e.localizedMessage}"
-            }
-            Log.e("AttendanceViewModel", "Exception during in-out fetch", e)
-            errorMessage = errorMsg
-        } finally {
-            isLoading = false
-        }
     }
+
 
     fun clearError() {
-        if (errorMessage.isNullOrEmpty()) {
-            errorMessage = ""
+        errorMessage = ""
+    }
+
+    @Composable
+    fun RetryLoadData() {
+        if (!isLoading) {
+            val context = LocalContext.current
+            val prefs = UserPreferences(context)
+ //           loadInOutDetailsForCurrentUser(prefs)
         }
     }
 }

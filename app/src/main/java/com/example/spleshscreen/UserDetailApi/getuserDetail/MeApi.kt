@@ -6,5 +6,6 @@ import retrofit2.http.Header
 
 interface MeApi {
     @GET("me")
-    suspend fun userDetail(@Header("Authorization") token: String): userResponse
+    suspend fun userDetail(): userResponse
 }
+//@Header("Authorization") token: String
